@@ -5,7 +5,7 @@ let clearButton =  document.getElementById('clearbtn');
 let operatorClickArray = ['equals','add','subtract','multiply','divide','powerOf'];
 let currentOperatorDisplay = document.getElementById('currentOperatorDisplay');
 let prevNumberDisplay = document.getElementById("previousNumberDisplay");
-let clickOperatorMapping = {
+let clickOperatorMapping = { //For operator display
     multiply: 'x',
     divide: "/",
     add: "+",
@@ -16,6 +16,15 @@ let clickOperatorMapping = {
     '*': 'x',
     powerOf: '^'
 };
+let hoverOperatorMapping = {  //for highlighting on keypress
+    '*': 'multiply',
+    '/': 'divide',
+    '-': 'subtract',
+    '+': 'add',
+    'Enter': 'equals',
+    '=': 'equals'
+};
+
 let maxFraction = {
     style: 'decimal',
     maximumFractionDigits: 11,
@@ -53,7 +62,7 @@ function isKeyUp(e) {
 }
 
 function isClick(e) {
-    return (e.type == 'click')
+    return (e.type == 'click' || e.type == 'touchend');
 }
 
 //for keyboard presses. Check if key is number from 0 - 9
@@ -260,26 +269,88 @@ function preventEnterOnButtons(e) {
     }
 }
 
+function buttonPressed(e) {
+    if (keypressIsNumber(e)) {
+        document.getElementById(e.key).firstElementChild.classList.add('buttonPressed');
+    } else if (keypressIsOperator(e)) {
+        document.getElementById(hoverOperatorMapping[e.key]).firstElementChild.classList.add('buttonPressed')
+    } else if (e.key === "Escape") {
+        document.getElementById('clearbtn').classList.add("buttonPressed")
+    } else if (e.key === 'Backspace') {
+        document.getElementById('backspacebtn').classList.add("buttonPressed");
+    }
+}
+
+function buttonReleased(e) {
+    if (keypressIsNumber(e)) {
+        document.getElementById(e.key).firstElementChild.classList.remove('buttonPressed');
+    } else if (keypressIsOperator(e)) {
+        document.getElementById(hoverOperatorMapping[e.key]).firstElementChild.classList.remove('buttonPressed')
+    } else if (e.key === "Escape") {
+        document.getElementById('clearbtn').classList.remove("buttonPressed")
+    } else if (e.key === 'Backspace') {
+        document.getElementById('backspacebtn').classList.remove("buttonPressed");
+    }
+}
+
 
 //event handlers
 window.addEventListener('keypress',preventEnterOnButtons);
 
-
-//event handlers for button clicks.
-activeButtonContainerElements.forEach(function(buttonContainer) {
-    if (buttonContainer.id === 'clear') {
-        buttonContainer.firstElementChild.addEventListener('click', clearDisplay);
-    } else if (buttonContainer.id === 'negativeToggle') {
-        buttonContainer.firstElementChild.addEventListener('click', toggleNegative)
-    } else if (buttonContainer.id === 'backspace') {
-        buttonContainer.firstElementChild.addEventListener('click', removeLastNumber);
-    } else if (buttonContainer.firstElementChild.classList.contains("operator")) {
-        buttonContainer.firstElementChild.addEventListener('click', evaluateOperator);
-    } else {
-        buttonContainer.firstElementChild.addEventListener('click', pickNumber);
-    }
-});
-
 //event handlers for keypresses.
 window.addEventListener('keyup', evaluateOperator);
 window.addEventListener('keyup', pickNumber);
+window.addEventListener('keydown', buttonPressed);
+window.addEventListener('keyup', buttonReleased);
+
+
+if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+    // some code..
+    document.getElementById('calculatorContainer').classList.add("mobilePhone");
+    let width = (window.innerWidth > 0) ? window.innerWidth : screen.width;
+    let sizeToUse = (width - 20)/4;
+    let all300 = "repeat(4,"+ sizeToUse + "px)";
+    let height = (window.innerHeight > 0) ? window.innerHeight : screen.height;
+    let sizeToUseH = (height - 170)/6;
+    let all300H = "repeat(6,minmax(160px,"+ sizeToUseH + "px)";
+    document.getElementById('calculatorContainer').style.gridTemplateRows =
+        all300H;
+    document.getElementById('calculatorContainer').style.gridTemplateColumns =
+        all300;
+
+    activeButtonContainerElements.forEach(function (buttonContainer) {
+        if (buttonContainer.id === 'clear') {
+            buttonContainer.firstElementChild.addEventListener('touchend', clearDisplay);
+        } else if (buttonContainer.id === 'negativeToggle') {
+            buttonContainer.firstElementChild.addEventListener('touchend', toggleNegative)
+        } else if (buttonContainer.id === 'backspace') {
+            buttonContainer.firstElementChild.addEventListener('touchend', removeLastNumber);
+        } else if (buttonContainer.firstElementChild.classList.contains("operator")) {
+            buttonContainer.firstElementChild.addEventListener('touchend', evaluateOperator);
+        } else {
+            buttonContainer.firstElementChild.addEventListener('touchend', pickNumber);
+        }
+    })
+} else {
+    activeButtonContainerElements.forEach(function(buttonContainer) {
+        if (buttonContainer.id === 'clear') {
+            buttonContainer.firstElementChild.addEventListener('click', clearDisplay);
+        } else if (buttonContainer.id === 'negativeToggle') {
+            buttonContainer.firstElementChild.addEventListener('click', toggleNegative)
+        } else if (buttonContainer.id === 'backspace') {
+            buttonContainer.firstElementChild.addEventListener('click', removeLastNumber);
+        } else if (buttonContainer.firstElementChild.classList.contains("operator")) {
+            buttonContainer.firstElementChild.addEventListener('click', evaluateOperator);
+        } else {
+            buttonContainer.firstElementChild.addEventListener('click', pickNumber);
+        }
+    });
+
+
+
+
+
+
+
+
+}

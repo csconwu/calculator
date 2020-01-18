@@ -1,7 +1,11 @@
 
 * {
     font-family: "Kulim Park";
+    touch-action: manipulation;
+}
+body {
     background-color: #d9eaf3;
+    margin: 0;
 }
 
 header {
@@ -10,10 +14,10 @@ header {
     font-weight: bold;
     margin: 20px;
     padding-top: 30px;
-    padding-bottom: 30px;
 }
 
 .bodyContainer {
+    width: 100%;
 
 }
 
@@ -22,7 +26,7 @@ header {
     margin: 20px auto;
     border: 10px solid darkslategray;
     border-radius: 40px;
-    background-color: firebrick;
+    background-color: burlywood;
     grid-template-columns: repeat(4,minmax(120px, 1fr));
     grid-template-rows: repeat(6, minmax(100px, auto));
     min-width: 580px;
@@ -31,6 +35,17 @@ header {
     max-height: 800px;
     justify-items: center;
     align-items: center;
+}
+
+.calculatorContainer.mobilePhone {
+    margin: 20px 0;
+    grid-template-columns: repeat(4,1fr);
+    grid-template-rows: repeat(6, 1fr);
+    width: 100%;
+    min-height: 50%;
+    max-height: 90%;
+    min-width: 98%;
+    max-width: 98%;
 }
 
 .displayContainer {
@@ -111,9 +126,18 @@ sup {
 }
 
 button:hover {
-    font-size: 450%;
+    /* font-size: 450%; Currently messing with grid size in mobile */
     opacity: 0.8;
     transition: all 250ms ease-in-out;
+}
+
+.buttonPressed {
+    font-size: 450%;
+    opacity: 0.8;
+}
+
+#backspacebtn.buttonPressed {
+    opacity: 0.5;
 }
 
 button:focus {
@@ -156,7 +180,7 @@ button:focus {
 }
 
 #displayP {
-    margin: 20px;
+    margin: 0 20px 20px;
     background-color: inherit;
     font-weight: 600;
 }
