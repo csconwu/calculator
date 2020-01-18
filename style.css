@@ -20,15 +20,15 @@ header {
 .calculatorContainer {
     display: grid;
     margin: 20px auto;
-    border: 10px solid firebrick;
+    border: 10px solid darkslategray;
     border-radius: 40px;
     background-color: firebrick;
-    grid-template-columns: repeat(4,minmax(75px, 1fr));
-    grid-template-rows: repeat(6, minmax(125px, auto));
-    min-width: 450px;
-    max-width: 750px;
-    min-height: 900px;
-    max-height: 1500px;
+    grid-template-columns: repeat(4,minmax(120px, 1fr));
+    grid-template-rows: repeat(6, minmax(100px, auto));
+    min-width: 580px;
+    max-width: 600px;
+    min-height: 700px;
+    max-height: 800px;
     justify-items: center;
     align-items: center;
 }
@@ -50,14 +50,17 @@ header {
     background-color: antiquewhite;
     font-size: 400%;
     font-weight: bold;
-    width: 80%;
-    height: 100%;
+    width: 90%;
+    max-height: 100%;
     text-align: right;
-    margin: 0 auto;
+    margin: 10px auto;
     justify-content: center;
     align-content: center;
     flex-direction: column;
-
+    border: 5px solid dimgray;
+    border-radius: 20px;
+    padding-right: 10px;
+    padding-left: 10px;
 }
 
 .buttonContainer {
@@ -69,7 +72,7 @@ header {
 .buttonContainer button {
     display: block;
     width: 100%;
-    background-color: #3B5998;
+    background-color: slategray;
     color: antiquewhite;
     border: none;
     font-size: 300%;
@@ -84,6 +87,11 @@ header {
 
 button.operator, .nothing, sup {
     background-color: black;
+}
+
+sup {
+    font-size: 50%;
+    vertical-align: top;
 }
 
 #zerobtn {
@@ -112,11 +120,52 @@ button:focus {
     outline: none;
 }
 
-button:disabled {
-    background-color: lightgray;
-}
-
 #clearbtn {
     background-color: darkgreen;
 }
 
+#backspacebtn {
+    background-color: darkred;
+    opacity: 0.6;
+}
+
+.operatorAndPreviousNumber {
+    background-color: inherit;
+    font-size: 40%;
+}
+
+#previousNumberDisplay, #currentOperatorDisplay {
+    background-color: inherit;
+    display: inline-flex;
+    opacity: 0.7;
+    margin: 0;
+}
+
+#previousNumberDisplay {
+    float: left;
+    padding-left: 10px;
+    left: 10px;
+    border: 2px solid antiquewhite;
+    border-radius: 30px;
+}
+
+#currentOperatorDisplay {
+    float: right;
+    padding-right: 10px;
+    text-align: right;
+}
+
+#displayP {
+    margin: 20px;
+    background-color: inherit;
+    font-weight: 600;
+}
+
+button:disabled {
+    background-color: lightgray;
+}
+
+#backspacebtn:disabled, .disabledSup {
+    background-color: lightgray;
+    opacity: 1;
+}
