@@ -86,6 +86,7 @@ function convertToformNumber(stringV) {
 
 // toggle the current number on the display between positive and negative.
 function toggleNegative() {
+    if (errorMode) {return}
     if (currentNumber == null) {previousNumber *= -1}
     else {currentNumber *= -1}
     negativeRequest = true;
@@ -93,9 +94,9 @@ function toggleNegative() {
 }
 
 function disableMostButtons() {
-    activeButtonContainerElements.forEach(function(btnContainer) {
-        btnContainer.firstElementChild.disabled = true;
-    })
+    activeButtonContainerElements.forEach(function(btnContainers) {
+        btnContainers.firstElementChild.disabled = true;
+    });
     clearButton.disabled = false;
     document.getElementById('sup01').classList.add('disabledSup');
 }
