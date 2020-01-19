@@ -83,7 +83,7 @@ function convertToformNumber(stringV) {
 }
 
 // toggle the current number on the display between positive and negative.
-function toggleNegative(e) {
+function toggleNegative() {
     if (currentNumber == null) {previousNumber *= -1}
     else {currentNumber *= -1}
     negativeRequest = true;
@@ -247,8 +247,10 @@ function pickNumber(e) {
     if (keypressIsNumber(e)) {numberFromClick = e.key}
     else {numberFromClick = e.target.parentElement.id}
 
-    if (numberFromClick === '0' && (dotEnabled || displayContainsDot()) && !operatorActive && !currentNumberIsAResult) {
+    if (numberFromClick === '0' && (dotEnabled || (displayContainsDot()) && !operatorActive && !currentNumberIsAResult)) {
         zeroAfterDot = true;
+    } else if (numberFromClick === "." || numberFromClick === 'dot') {
+        console.log('love is dot')
     } else if (dotEnabled) {
         currentNumber = +(`${numberDisplayedElement.textContent.replace(/,/g,'')}${numberFromClick}`);
         dotEnabled = false;
@@ -345,12 +347,4 @@ if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(naviga
             buttonContainer.firstElementChild.addEventListener('click', pickNumber);
         }
     });
-
-
-
-
-
-
-
-
 }
