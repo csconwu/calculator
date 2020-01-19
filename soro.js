@@ -128,9 +128,9 @@ function updateDisplay(e) {
         numberDisplayedElement.textContent += '.';
         dotEnabled = true;
     } else if ((dotEnabled || zeroAfterDot) && ((isKeyUp(e) && e.key === '0') || isClick(e) && e.target.parentElement.id === '0')) { //for adding 0 right after decimal place
+        console.log("why are you hitting this?");
         numberDisplayedElement.textContent += '0';
         zeroAfterDot = false;
-
     } else if (currentNumber == null && negativeRequest) {
         numberDisplayedElement.textContent = convertToformNumber(previousNumber);
     } else {
@@ -142,36 +142,46 @@ function updateDisplay(e) {
 //remove last character
 function removeLastNumber(e) {
     if (!currentNumberIsAResult && !operatorActive ) {
+        if (!displayContainsDot()) {
+            currentNumber = Math.floor((currentNumber)/10);
+            updateDisplay();
+            return;
+        }
+
         let displayedNumbLength = numberDisplayedElement.textContent.length - 1; //-1 for index purpose
         let lengthAfterRemoval = displayedNumbLength -1;
         let eCurrentNumber = `${numberDisplayedElement.textContent.replace(/,/g,'')}`; //remove commas
-        if (eCurrentNumber.slice(-1) === '0') {
-            currentNumber = convertToformNumber(eCurrentNumber.substr(0, displayedNumbLength)); //remove last character from number without commas
+        let lastNumber = eCurrentNumber.slice(-1);
+
+        if (lastNumber !== '0') {
+            let unConvDecNum = numberDisplayedElement.textContent;
+            numberDisplayedElement.textContent = unConvDecNum.substr(0, unConvDecNum.length-1);
+            eCurrentNumber = eCurrentNumber.substr(0, eCurrentNumber.length-1);
+            currentNumber = parseFloat(eCurrentNumber); //remove last character from number without commas
             if (dotEnabled) {
-                numberDisplayedElement.textContent += '.';
+                console.log('Nothing Done')
+                // numberDisplayedElement.textContent += '.';
             }
-            updateDisplay();
         } else {
             numOfZeroAfterDecimal = 0;
             addDecimalFirst = false;
-            console.log(eCurrentNumber);
             while (eCurrentNumber.slice(-1) === '0') {
-                numOfZeroAfterDecimal ++;
-                eCurrentNumber = eCurrentNumber.substr(0, displayedNumbLength);
-                displayedNumbLength --;
-                lengthAfterRemoval --;
+                eCurrentNumber = eCurrentNumber.substr(0,eCurrentNumber.length-1);
+                if (eCurrentNumber.slice(-1) === '0') {numOfZeroAfterDecimal++;}
                 if (eCurrentNumber.slice(-1) === '.') {addDecimalFirst = true}
             }
+            eCurrentNumber = parseFloat(eCurrentNumber);
 
-            eCurrentNumber = convertToformNumber(+(eCurrentNumber));
+            eCurrentNumber = convertToformNumber(eCurrentNumber);
+
             if (addDecimalFirst) {
-                console.log('0'.repeat(numOfZeroAfterDecimal));
-                eCurrentNumber = eCurrentNumber.substr(0, displayedNumbLength)+'.'+'0'.repeat(numOfZeroAfterDecimal);
+                eCurrentNumber = eCurrentNumber+'.'+'0'.repeat(numOfZeroAfterDecimal);
             } else {
-                eCurrentNumber = eCurrentNumber.substr(0, displayedNumbLength)+'0'.repeat(numOfZeroAfterDecimal);
+                eCurrentNumber = eCurrentNumber+'0'.repeat(numOfZeroAfterDecimal);
             }
             //clear variables for possible next backspace
             numberDisplayedElement.textContent = eCurrentNumber;
+            eCurrentNumber = eCurrentNumber.replace(/,/g,'');
             currentNumber = +(eCurrentNumber);
             }
         if (numberDisplayedElement.textContent === '') {
@@ -297,7 +307,7 @@ function pickNumber(e) {
     if (numberFromClick === '0' && (dotEnabled || (displayContainsDot()) && !operatorActive && !currentNumberIsAResult)) {
         zeroAfterDot = true;
     } else if (numberFromClick === "." || numberFromClick === 'dot') {
-        console.log('love is dot')
+        let love = 'do nothing';
     } else if (dotEnabled) {
         currentNumber = +(`${numberDisplayedElement.textContent.replace(/,/g,'')}${numberFromClick}`);
         dotEnabled = false;
