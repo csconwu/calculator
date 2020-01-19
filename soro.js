@@ -41,6 +41,8 @@ let negativeRequest;
 let dotEnabled;
 let zeroAfterDot;
 let errorMode;
+let numOfZeroAfterDecimal;
+let addDecimalFirst;
 
 //initializations
 clearDisplay();
@@ -115,14 +117,20 @@ function updateOperatorDisplayed() {
 }
 
 function updateDisplay(e) {
+    if (numberDisplayedElement.textContent === '') {
+        numberDisplayedElement.textContent = '0';
+        currentNumber = 0;
+        return;
+    }
     if (!e) {e = 'noArgument'}
     if (isDot(e)) {
         if (displayContainsDot()) {return}
         numberDisplayedElement.textContent += '.';
         dotEnabled = true;
-    } else if (dotEnabled || zeroAfterDot) { //for adding 0 right after decimal place
+    } else if ((dotEnabled || zeroAfterDot) && ((isKeyUp(e) && e.key === '0') || isClick(e) && e.target.parentElement.id === '0')) { //for adding 0 right after decimal place
         numberDisplayedElement.textContent += '0';
         zeroAfterDot = false;
+
     } else if (currentNumber == null && negativeRequest) {
         numberDisplayedElement.textContent = convertToformNumber(previousNumber);
     } else {
@@ -133,9 +141,44 @@ function updateDisplay(e) {
 
 //remove last character
 function removeLastNumber(e) {
-    if (!currentNumberIsAResult && !operatorActive) {
-        currentNumber = Math.floor(currentNumber/10);
-        updateDisplay();
+    if (!currentNumberIsAResult && !operatorActive ) {
+        let displayedNumbLength = numberDisplayedElement.textContent.length - 1; //-1 for index purpose
+        let lengthAfterRemoval = displayedNumbLength -1;
+        let eCurrentNumber = `${numberDisplayedElement.textContent.replace(/,/g,'')}`; //remove commas
+        if (eCurrentNumber.slice(-1) === '0') {
+            currentNumber = convertToformNumber(eCurrentNumber.substr(0, displayedNumbLength)); //remove last character from number without commas
+            if (dotEnabled) {
+                numberDisplayedElement.textContent += '.';
+            }
+            updateDisplay();
+        } else {
+            numOfZeroAfterDecimal = 0;
+            addDecimalFirst = false;
+            console.log(eCurrentNumber);
+            while (eCurrentNumber.slice(-1) === '0') {
+                numOfZeroAfterDecimal ++;
+                eCurrentNumber = eCurrentNumber.substr(0, displayedNumbLength);
+                displayedNumbLength --;
+                lengthAfterRemoval --;
+                if (eCurrentNumber.slice(-1) === '.') {addDecimalFirst = true}
+            }
+
+            eCurrentNumber = convertToformNumber(+(eCurrentNumber));
+            if (addDecimalFirst) {
+                console.log('0'.repeat(numOfZeroAfterDecimal));
+                eCurrentNumber = eCurrentNumber.substr(0, displayedNumbLength)+'.'+'0'.repeat(numOfZeroAfterDecimal);
+            } else {
+                eCurrentNumber = eCurrentNumber.substr(0, displayedNumbLength)+'0'.repeat(numOfZeroAfterDecimal);
+            }
+            //clear variables for possible next backspace
+            numberDisplayedElement.textContent = eCurrentNumber;
+            currentNumber = +(eCurrentNumber);
+            }
+        if (numberDisplayedElement.textContent === '') {
+            numberDisplayedElement.textContent = '0';
+            currentNumber = 0;
+        }
+
     }
 }
 
@@ -146,11 +189,13 @@ function clearDisplay(e) {
     currentNumber = 0;
     operatorActive = false;
     currentNumberIsAResult = false;
+    dotEnabled = false;
+
     updateDisplay();
     prevNumberDisplay.textContent = "(            )"; //remove if you update updatePreviousNumber to handle this
     activeButtonContainerElements.forEach(function(btnContainer) {
         btnContainer.firstElementChild.disabled = false; //enable buttons if disabled by infinity result
-    })
+    });
     errorMode = false;
     document.getElementById('sup01').classList.remove('disabledSup');
 }
@@ -246,6 +291,8 @@ function pickNumber(e) {
     let numberFromClick;
     if (keypressIsNumber(e)) {numberFromClick = e.key}
     else {numberFromClick = e.target.parentElement.id}
+
+    if (numberFromClick === '0' && numberDisplayedElement.textContent === '0') {return}
 
     if (numberFromClick === '0' && (dotEnabled || (displayContainsDot()) && !operatorActive && !currentNumberIsAResult)) {
         zeroAfterDot = true;
