@@ -43,6 +43,7 @@ let zeroAfterDot;
 let errorMode;
 let numOfZeroAfterDecimal;
 let addDecimalFirst;
+let prevDispIsExpression;
 
 //initializations
 clearDisplay();
@@ -103,14 +104,14 @@ function disableMostButtons() {
 
 function updatePreviousNumber() {
     if (!currentNumberIsAResult) {
-        prevNumberDisplay.textContent = `(${convertToformNumber(previousNumber)})`;
+        prevNumberDisplay.textContent = '(' + convertToformNumber(previousNumber) + ')';
     } else {
         prevNumberDisplay.textContent = "(            )";
     }
 }
 
 function updateOperatorDisplayed() {
-    if (currentButton.length > 2 || currentButton == '*') {
+    if (currentButton.length > 2 || currentButton == '*') { //added * here to change it to x displayed
         currentOperatorDisplay.textContent = clickOperatorMapping[currentButton];
     } else {
         currentOperatorDisplay.textContent = (operatorActive ? currentButton : '');
@@ -262,6 +263,15 @@ function evaluateOperator(e) {
                 break;
         }
 
+        if (currentButton !== 'Enter' && currentButton !== 'equals') { //update previous number display to show expression
+            if (currentButton.length > 2) {
+                prevNumberDisplay.textContent = `(${previousNumber}${clickOperatorMapping[currentButton]}${currentNumber})`;
+            } else {
+                prevNumberDisplay.textContent = `(${previousNumber}${currentButton}${currentNumber})`;
+            }
+            prevDispIsExpression = true;
+        }
+
         if (result > 999999999999 || result < -99999999999 || isNaN(result)) {
             numberDisplayedElement.textContent = 'ERROR, CLEAR!';
             errorMode = true;
@@ -272,7 +282,6 @@ function evaluateOperator(e) {
         currentNumber = +(convertToformNumber(currentNumber).replace(/,/g,''));
         currentNumberIsAResult = true;
         updateDisplay();
-        updatePreviousNumber();
         previousNumber = null;
     }
 
@@ -298,7 +307,10 @@ function pickNumber(e) {
     }
     if (errorMode) return;
     if (isKeyUp(e) && !keypressIsNumber(e) && !isDot(e)) {return}
-    console.log(e.type);
+    if (prevDispIsExpression) {
+        updatePreviousNumber();
+        prevDispIsExpression = false;
+    }
     let numberFromClick;
     if (keypressIsNumber(e)) {numberFromClick = e.key}
     else {numberFromClick = e.target.parentElement.id}
