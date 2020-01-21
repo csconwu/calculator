@@ -103,7 +103,7 @@ function disableMostButtons() {
 }
 
 function updatePreviousNumber() {
-    if (!currentNumberIsAResult) {
+    if (!currentNumberIsAResult && currentButton !== "Enter" && currentButton !== 'equals') {
         prevNumberDisplay.textContent = '(' + convertToformNumber(previousNumber) + ')';
     } else {
         prevNumberDisplay.textContent = "(            )";
