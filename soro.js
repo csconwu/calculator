@@ -85,6 +85,13 @@ function convertToformNumber(stringV) {
     return stringV.toLocaleString('en-US', maxFraction);
 }
 
+//prevent Enter as a method to click on buttons. Otherwise could be confusing if user is expecting an evaluation
+function preventEnterOnButtons(e) {
+    if (e.key == 'Enter') {
+        e.preventDefault();
+    }
+}
+
 // toggle the current number on the display between positive and negative.
 function toggleNegative() {
     if (errorMode) {return}
@@ -94,12 +101,38 @@ function toggleNegative() {
     updateDisplay();
 }
 
+//after error result
 function disableMostButtons() {
     activeButtonContainerElements.forEach(function(btnContainers) {
         btnContainers.firstElementChild.disabled = true;
     });
     clearButton.disabled = false;
     document.getElementById('sup01').classList.add('disabledSup');
+}
+
+//effects after using keyboard as input
+function buttonPressed(e) {
+    if (keypressIsNumber(e)) {
+        document.getElementById(e.key).firstElementChild.classList.add('buttonPressed');
+    } else if (keypressIsOperator(e)) {
+        document.getElementById(hoverOperatorMapping[e.key]).firstElementChild.classList.add('buttonPressed')
+    } else if (e.key === "Escape") {
+        document.getElementById('clearbtn').classList.add("buttonPressed")
+    } else if (e.key === 'Backspace') {
+        document.getElementById('backspacebtn').classList.add("buttonPressed");
+    }
+}
+
+function buttonReleased(e) {
+    if (keypressIsNumber(e)) {
+        document.getElementById(e.key).firstElementChild.classList.remove('buttonPressed');
+    } else if (keypressIsOperator(e)) {
+        document.getElementById(hoverOperatorMapping[e.key]).firstElementChild.classList.remove('buttonPressed')
+    } else if (e.key === "Escape") {
+        document.getElementById('clearbtn').classList.remove("buttonPressed")
+    } else if (e.key === 'Backspace') {
+        document.getElementById('backspacebtn').classList.remove("buttonPressed");
+    }
 }
 
 function updatePreviousNumber() {
@@ -124,13 +157,12 @@ function updateDisplay(e) {
         currentNumber = 0;
         return;
     }
-    if (!e) {e = 'noArgument'}
+    if (!e) {e = 'noArgument'}  //prevent null errors
     if (isDot(e)) {
         if (displayContainsDot()) {return}
         numberDisplayedElement.textContent += '.';
         dotEnabled = true;
     } else if ((dotEnabled || zeroAfterDot) && ((isKeyUp(e) && e.key === '0') || isClick(e) && e.target.parentElement.id === '0')) { //for adding 0 right after decimal place
-        console.log("why are you hitting this?");
         numberDisplayedElement.textContent += '0';
         zeroAfterDot = false;
     } else if (currentNumber == null && negativeRequest) {
@@ -141,7 +173,6 @@ function updateDisplay(e) {
     negativeRequest = false;
 }
 
-//remove last character
 function removeLastNumber(e) {
     if (!currentNumberIsAResult && !operatorActive ) {
         if (!displayContainsDot()) {
@@ -150,51 +181,44 @@ function removeLastNumber(e) {
             return;
         }
 
-        let displayedNumbLength = numberDisplayedElement.textContent.length - 1; //-1 for index purpose
-        let lengthAfterRemoval = displayedNumbLength -1;
-        let eCurrentNumber = `${numberDisplayedElement.textContent.replace(/,/g,'')}`; //remove commas
+        let eCurrentNumber = `${numberDisplayedElement.textContent.replace(/,/g,'')}`;
         let lastNumber = eCurrentNumber.slice(-1);
 
         if (lastNumber !== '0') {
             let unConvDecNum = numberDisplayedElement.textContent;
             numberDisplayedElement.textContent = unConvDecNum.substr(0, unConvDecNum.length-1);
-            eCurrentNumber = eCurrentNumber.substr(0, eCurrentNumber.length-1);
-            currentNumber = parseFloat(eCurrentNumber); //remove last character from number without commas
-            if (dotEnabled) {
-                console.log('Nothing Done')
-                // numberDisplayedElement.textContent += '.';
-            }
+            currentNumber = parseFloat(eCurrentNumber.substr(0,eCurrentNumber.length-1)); //remove last character from number without commas
         } else {
             numOfZeroAfterDecimal = 0;
             addDecimalFirst = false;
             while (eCurrentNumber.slice(-1) === '0') {
-                eCurrentNumber = eCurrentNumber.substr(0,eCurrentNumber.length-1);
-                if (eCurrentNumber.slice(-1) === '0') {numOfZeroAfterDecimal++;}
-                if (eCurrentNumber.slice(-1) === '.') {addDecimalFirst = true}
+                eCurrentNumber = eCurrentNumber.substr(0, eCurrentNumber.length - 1);
+                if (eCurrentNumber.slice(-1) === '0') {
+                    numOfZeroAfterDecimal++;
+                }
+                if (eCurrentNumber.slice(-1) === '.') {
+                    addDecimalFirst = true
+                }
             }
-            eCurrentNumber = parseFloat(eCurrentNumber);
-
-            eCurrentNumber = convertToformNumber(eCurrentNumber);
+            eCurrentNumber = convertToformNumber(parseFloat(eCurrentNumber));
 
             if (addDecimalFirst) {
-                eCurrentNumber = eCurrentNumber+'.'+'0'.repeat(numOfZeroAfterDecimal);
+                eCurrentNumber = eCurrentNumber + '.' + '0'.repeat(numOfZeroAfterDecimal);
             } else {
-                eCurrentNumber = eCurrentNumber+'0'.repeat(numOfZeroAfterDecimal);
+                eCurrentNumber = eCurrentNumber + '0'.repeat(numOfZeroAfterDecimal);
             }
+
             //clear variables for possible next backspace
             numberDisplayedElement.textContent = eCurrentNumber;
-            eCurrentNumber = eCurrentNumber.replace(/,/g,'');
-            currentNumber = +(eCurrentNumber);
-            }
+            currentNumber = +(eCurrentNumber.replace(/,/g, ''))
+        }
         if (numberDisplayedElement.textContent === '') {
             numberDisplayedElement.textContent = '0';
             currentNumber = 0;
         }
-
     }
 }
 
-//essentially reset everything.
 function clearDisplay(e) {
     previousNumber = null;
     currentButton = null;
@@ -207,13 +231,50 @@ function clearDisplay(e) {
     updateDisplay();
     prevNumberDisplay.textContent = "(            )"; //remove if you update updatePreviousNumber to handle this
     activeButtonContainerElements.forEach(function(btnContainer) {
-        btnContainer.firstElementChild.disabled = false; //enable buttons if disabled by infinity result
+        btnContainer.firstElementChild.disabled = false; //enable buttons if disabled by errored result
     });
     errorMode = false;
     document.getElementById('sup01').classList.remove('disabledSup');
 }
 
-// for operator keys. On first press, set current button. if an operator already used, evaluate and get result.
+//for both keyboard and clicks. Replace number or concatenate to existing number.
+function pickNumber(e) {
+    if (currentNumberIsAResult && isDot(e)) return;
+    if (currentNumber) {
+        if (displayContainsDot() && currentNumber.toString().length >= 12) return;
+        if (currentNumber.toString().length >= 11 && !displayContainsDot()) return;
+    }
+    if (errorMode) return;
+    if (isKeyUp(e) && !keypressIsNumber(e) && !isDot(e)) {return}
+    if (prevDispIsExpression) {
+        updatePreviousNumber();
+        prevDispIsExpression = false;
+    }
+    let numberFromClick;
+    if (keypressIsNumber(e)) {numberFromClick = e.key}
+    else {numberFromClick = e.target.parentElement.id}
+
+    if (numberFromClick === '0' && numberDisplayedElement.textContent === '0') {return}
+
+    if (numberFromClick === '0' && (dotEnabled || (displayContainsDot()) && !operatorActive && !currentNumberIsAResult)) {
+        zeroAfterDot = true;
+    } else if (numberFromClick === "." || numberFromClick === 'dot') {
+        let newDot;
+    } else if (dotEnabled) {
+        currentNumber = +(`${numberDisplayedElement.textContent.replace(/,/g,'')}${numberFromClick}`);
+        dotEnabled = false;
+    } else if (!operatorActive && currentNumber != null && !currentNumberIsAResult) {
+        currentNumber = +(`${numberDisplayedElement.textContent.replace(/,/g,'')}${numberFromClick}`);
+    } else if ((operatorActive && currentNumber == null) || currentNumberIsAResult) {
+        currentNumber = +(numberFromClick);
+        operatorActive = false;
+        currentNumberIsAResult = false;
+        updatePreviousNumber();
+    }
+    updateDisplay(e);
+}
+
+// for operator keys. On first press, set current button. if an operator already used, evaluate and get result. Update displays.
 function evaluateOperator(e) {
     if (e.key === "Backspace") {
         removeLastNumber();
@@ -264,7 +325,8 @@ function evaluateOperator(e) {
                 break;
         }
 
-        if (currentButton !== 'Enter' && currentButton !== 'equals') { //update previous number display to show expression
+        //update previous number display to show expression
+        if (currentButton !== 'Enter' && currentButton !== 'equals') {
             if (currentButton.length > 2) {
                 prevNumberDisplay.textContent = `(${previousNumber}${clickOperatorMapping[currentButton]}${currentNumber})`;
             } else {
@@ -273,14 +335,15 @@ function evaluateOperator(e) {
             prevDispIsExpression = true;
         }
 
+        //Show error on certain results. User required to clear if error.
         if (result > 999999999999 || result < -99999999999 || isNaN(result)) {
             numberDisplayedElement.textContent = 'ERROR, CLEAR!';
             errorMode = true;
             disableMostButtons();
             return;
         } else if (convertToformNumber(result).length > 10) result = result.toFixed(11);
-        currentNumber = result;
-        currentNumber = +(convertToformNumber(currentNumber).replace(/,/g,''));
+
+        currentNumber = +(convertToformNumber(result).replace(/,/g,''));
         currentNumberIsAResult = true;
         updateDisplay();
         previousNumber = null;
@@ -299,78 +362,10 @@ function evaluateOperator(e) {
     }
 }
 
-//for both keyboard and clicks. Replace number or concatenate to existing number.
-function pickNumber(e) {
-    if (currentNumberIsAResult && isDot(e)) return;
-    if (currentNumber) {
-        if (displayContainsDot() && currentNumber.toString().length >= 12) return;
-        if (currentNumber.toString().length >= 11 && !displayContainsDot()) {return}
-    }
-    if (errorMode) return;
-    if (isKeyUp(e) && !keypressIsNumber(e) && !isDot(e)) {return}
-    if (prevDispIsExpression) {
-        updatePreviousNumber();
-        prevDispIsExpression = false;
-    }
-    let numberFromClick;
-    if (keypressIsNumber(e)) {numberFromClick = e.key}
-    else {numberFromClick = e.target.parentElement.id}
-
-    if (numberFromClick === '0' && numberDisplayedElement.textContent === '0') {return}
-
-    if (numberFromClick === '0' && (dotEnabled || (displayContainsDot()) && !operatorActive && !currentNumberIsAResult)) {
-        zeroAfterDot = true;
-    } else if (numberFromClick === "." || numberFromClick === 'dot') {
-        let love = 'do nothing';
-    } else if (dotEnabled) {
-        currentNumber = +(`${numberDisplayedElement.textContent.replace(/,/g,'')}${numberFromClick}`);
-        dotEnabled = false;
-    } else if (!operatorActive && currentNumber != null && !currentNumberIsAResult) {
-        currentNumber = +(`${numberDisplayedElement.textContent.replace(/,/g,'')}${numberFromClick}`); //add targetNumber to currentNumber
-    } else if ((operatorActive && currentNumber == null) || currentNumberIsAResult) {
-        currentNumber = +(numberFromClick); // set currentNumber = targetNumber
-        operatorActive = false;
-        currentNumberIsAResult = false;
-        updatePreviousNumber();
-    }
-    updateDisplay(e);
-}
-
-function preventEnterOnButtons(e) {
-    if (e.key == 'Enter') {
-        e.preventDefault();
-    }
-}
-
-function buttonPressed(e) {
-    if (keypressIsNumber(e)) {
-        document.getElementById(e.key).firstElementChild.classList.add('buttonPressed');
-    } else if (keypressIsOperator(e)) {
-        document.getElementById(hoverOperatorMapping[e.key]).firstElementChild.classList.add('buttonPressed')
-    } else if (e.key === "Escape") {
-        document.getElementById('clearbtn').classList.add("buttonPressed")
-    } else if (e.key === 'Backspace') {
-        document.getElementById('backspacebtn').classList.add("buttonPressed");
-    }
-}
-
-function buttonReleased(e) {
-    if (keypressIsNumber(e)) {
-        document.getElementById(e.key).firstElementChild.classList.remove('buttonPressed');
-    } else if (keypressIsOperator(e)) {
-        document.getElementById(hoverOperatorMapping[e.key]).firstElementChild.classList.remove('buttonPressed')
-    } else if (e.key === "Escape") {
-        document.getElementById('clearbtn').classList.remove("buttonPressed")
-    } else if (e.key === 'Backspace') {
-        document.getElementById('backspacebtn').classList.remove("buttonPressed");
-    }
-}
-
-
 //event handlers
 window.addEventListener('keypress',preventEnterOnButtons);
 
-//event handlers for keypresses.
+//event handlers for keypress
 window.addEventListener('keyup', evaluateOperator);
 window.addEventListener('keyup', pickNumber);
 window.addEventListener('keydown', buttonPressed);
