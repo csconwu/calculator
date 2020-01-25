@@ -202,6 +202,7 @@ function clearDisplay(e) {
     operatorActive = false;
     currentNumberIsAResult = false;
     dotEnabled = false;
+    prevDispIsExpression = false;
 
     updateDisplay();
     prevNumberDisplay.textContent = "(            )"; //remove if you update updatePreviousNumber to handle this
