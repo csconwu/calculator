@@ -46,8 +46,13 @@ let addDecimalFirst;
 let prevDispIsExpression;
 
 //initializations
-clearDisplay();
 
+if (localStorage.length > 0) {
+        currentNumber = +(localStorage.getItem("result"));
+        numberDisplayedElement.textContent = convertToformNumber(currentNumber);
+    } else {
+        clearDisplay();
+}
 //functions
 
 //BOOOLEAN
@@ -345,6 +350,7 @@ function evaluateOperator(e) {
 
         currentNumber = +(convertToformNumber(result).replace(/,/g,''));
         currentNumberIsAResult = true;
+        localStorage.setItem('result', currentNumber);
         updateDisplay();
         previousNumber = null;
     }

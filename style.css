@@ -31,7 +31,7 @@ header {
     grid-template-rows: repeat(6, minmax(100px, auto));
     min-width: 580px;
     max-width: 600px;
-    min-height: 700px;
+    min-height: 600px;
     max-height: 800px;
     justify-items: center;
     align-items: center;
